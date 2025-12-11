@@ -38,7 +38,7 @@ func attachToChild(name string) {
 	}
 
 	unix.Sethostname([]byte(name))
-	ps1 := fmt.Sprintf("\033[1;32m%s\033[0m> ", name)
+	ps1 := `gonett@\h:\w $ `
 
 	cmd := []string{
 		"bash",
