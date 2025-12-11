@@ -21,6 +21,12 @@ func usage() {
 func main() {
 	// handle child mode (started via /proc/self/exe child <name>)
 	if len(os.Args) > 1 && os.Args[1] == "child" {
+		// Verify that this was called legitimately from the parent process
+		if os.Getenv("GONETT_CHILD_AUTH") != "true" {
+			fmt.Println("unknown command")
+			usage()
+			os.Exit(0)
+		}
 		if len(os.Args) < 3 {
 			fmt.Println("child: missing namespace name")
 			os.Exit(1)

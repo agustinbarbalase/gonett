@@ -66,6 +66,8 @@ func (ns LinuxNamespace) Attach() error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
+	cmd.Env = append(os.Environ(), "GONETT_CHILD_AUTH=true")
+
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Setctty:    true,
 		Setsid:     true,
