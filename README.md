@@ -1,5 +1,7 @@
 # gonet
 
+Gonet is a Go version for library [Mininet](https://github.com/mininet/mininet/tree/master)
+
 ## How use it
 
 For create a container run
