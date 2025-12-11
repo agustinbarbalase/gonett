@@ -6,8 +6,8 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"gonet/internal/namespace"
-	nsmanager "gonet/internal/namespace/manager"
+	"gonett/internal/namespace"
+	nsmanager "gonett/internal/namespace/manager"
 )
 
 func usage() {

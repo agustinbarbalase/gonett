@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"syscall"
 
-	mgr "gonet/internal/namespace/manager"
+	mgr "gonett/internal/namespace/manager"
 
 	"golang.org/x/sys/unix"
 )
