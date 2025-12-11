@@ -1,6 +1,6 @@
-# gonet
+# gonett
 
-Gonet is a Go version for library [Mininet](https://github.com/mininet/mininet/tree/master)
+Gonett is a Go version for library [Mininet](https://github.com/mininet/mininet/tree/master)
 
 ## How use it
 
