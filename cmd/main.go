@@ -3,8 +3,11 @@ package main
 import (
 	"fmt"
 	"os"
+	"text/tabwriter"
+	"time"
 
 	"gonet/internal/namespace"
+	nsmanager "gonet/internal/namespace/manager"
 )
 
 func usage() {
@@ -37,7 +40,7 @@ func main() {
 
 	cmd := os.Args[1]
 
-	mgr := namespace.NewLinuxNamespaceManager()
+	mgr := nsmanager.NewLinuxNamespaceManager()
 
 	switch cmd {
 	case "create":
@@ -57,17 +60,20 @@ func main() {
 			usage()
 			return
 		}
-		name := os.Args[2]
-		// try to call Execute if the concrete manager exposes it
-		if execer, ok := mgr.(interface{ Execute(string, []string) error }); ok {
-			if err := execer.Execute(name, nil); err != nil {
-				fmt.Println("error:", err)
-				os.Exit(1)
+		identifier := os.Args[2]
+
+		// try to resolve identifier (id or name) to the namespace name using metadata
+		targetName := identifier
+		if metas, err := nsmanager.NewLinuxNamespaceManager().List(); err == nil {
+			for _, m := range metas {
+				if m.ID == identifier || m.Name == identifier {
+					targetName = m.Name
+					break
+				}
 			}
-			return
 		}
-		// fallback: attach a Namespace directly
-		ns := namespace.NewLinuxNamespace(name, false)
+
+		ns := namespace.NewLinuxNamespace(targetName, false)
 		if err := ns.Attach(); err != nil {
 			fmt.Println("error:", err)
 			os.Exit(1)
@@ -91,12 +97,54 @@ func main() {
 			fmt.Println("error:", err)
 			os.Exit(1)
 		}
-		for _, ns := range list {
-			fmt.Println(ns)
+
+		// print header and rows in tabular form similar to `docker ps`
+		w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+		fmt.Fprintln(w, "NAMESPACE ID\tNAME\tCREATED")
+
+		for _, meta := range list {
+			id := meta.ID
+			name := meta.Name
+			created := "unknown"
+			if t, err := time.Parse(time.RFC3339, meta.CreatedAt); err == nil {
+				created = humanizeDuration(time.Since(t)) + " ago"
+			}
+
+			fmt.Fprintf(w, "%s\t%s\t%s\n", id, name, created)
 		}
+		w.Flush()
 
 	default:
 		fmt.Println("unknown command")
 		usage()
 	}
+}
+
+// humanizeDuration returns a short, human-friendly duration string.
+func humanizeDuration(d time.Duration) string {
+	if d < time.Minute {
+		s := int(d.Seconds())
+		if s <= 0 {
+			return "just now"
+		}
+		return fmt.Sprintf("%ds", s)
+	}
+	if d < time.Hour {
+		m := int(d.Minutes())
+		return fmt.Sprintf("%dm", m)
+	}
+	if d < 24*time.Hour {
+		h := int(d.Hours())
+		return fmt.Sprintf("%dh", h)
+	}
+	days := int(d.Hours() / 24)
+	if days < 30 {
+		return fmt.Sprintf("%dd", days)
+	}
+	months := days / 30
+	if months < 12 {
+		return fmt.Sprintf("%dmo", months)
+	}
+	years := months / 12
+	return fmt.Sprintf("%dy", years)
 }
