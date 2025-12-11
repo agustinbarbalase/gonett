@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"syscall"
 
+	mgr "gonet/internal/namespace/manager"
+
 	"golang.org/x/sys/unix"
 )
 
@@ -21,7 +23,7 @@ func attachToChild(name string) {
 		os.Exit(1)
 	}
 
-	nsPath := filepath.Join(NETNS_DIR, name)
+	nsPath := filepath.Join(mgr.NETNS_BASE, name)
 
 	fd, err := os.Open(nsPath)
 	if err != nil {
@@ -65,8 +67,9 @@ func (ns LinuxNamespace) Attach() error {
 	cmd.Stderr = os.Stderr
 
 	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Setctty: true,
-		Setsid:  true,
+		Setctty:    true,
+		Setsid:     true,
+		Cloneflags: syscall.CLONE_NEWUTS,
 	}
 
 	return cmd.Run()
