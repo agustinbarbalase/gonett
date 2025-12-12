@@ -15,6 +15,8 @@ type Node struct {
 type Link struct {
 	NodeA string
 	NodeB string
+	IPA   string // IP address for NodeA end (CIDR format, e.g., "10.0.0.1/24")
+	IPB   string // IP address for NodeB end (CIDR format, e.g., "10.0.0.2/24")
 }
 
 type Topology struct {
@@ -47,5 +49,16 @@ func (t *Topology) AddLink(a, b string) {
 	t.Links = append(t.Links, Link{
 		NodeA: a,
 		NodeB: b,
+		IPA:   "",
+		IPB:   "",
+	})
+}
+
+func (t *Topology) AddLinkWithIPs(a, b, ipA, ipB string) {
+	t.Links = append(t.Links, Link{
+		NodeA: a,
+		NodeB: b,
+		IPA:   ipA,
+		IPB:   ipB,
 	})
 }
