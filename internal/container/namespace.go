@@ -14,7 +14,7 @@ import (
 
 const (
 	NETNS_BASE   = "/var/run/gonett/netns"
-	METADATA_DIR = "/var/lib/gonett/namespaces"
+	NAMESPACE_METADATA_DIR = "/var/lib/gonett/namespaces"
 )
 
 type NamespaceMetadata struct {
@@ -25,13 +25,13 @@ type NamespaceMetadata struct {
 }
 
 func saveMetadata(meta NamespaceMetadata) error {
-	path := filepath.Join(METADATA_DIR, meta.ID+".json")
+	path := filepath.Join(NAMESPACE_METADATA_DIR, meta.ID+".json")
 	data, _ := json.MarshalIndent(meta, "", "  ")
 	return os.WriteFile(path, data, 0644)
 }
 
 func loadMetadata(id string) (*NamespaceMetadata, error) {
-	path := filepath.Join(METADATA_DIR, id+".json")
+	path := filepath.Join(NAMESPACE_METADATA_DIR, id+".json")
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func loadMetadata(id string) (*NamespaceMetadata, error) {
 }
 
 func deleteMetadata(id string) error {
-	path := filepath.Join(METADATA_DIR, id+".json")
+	path := filepath.Join(NAMESPACE_METADATA_DIR, id+".json")
 	return os.Remove(path)
 }
 
@@ -61,9 +61,9 @@ func createNamespaceDirectory() error {
 }
 
 func createMetaDataDirectory() error {
-	_, err := os.Stat(METADATA_DIR)
+	_, err := os.Stat(NAMESPACE_METADATA_DIR)
 	if os.IsNotExist(err) {
-		return os.MkdirAll(METADATA_DIR, 0755)
+		return os.MkdirAll(NAMESPACE_METADATA_DIR, 0755)
 	}
 	return err
 }
@@ -124,7 +124,7 @@ func (ln *NamespaceManager) Create(name string) error {
 }
 
 func (ln *NamespaceManager) Delete(identifier string) error {
-	entries, err := os.ReadDir(METADATA_DIR)
+	entries, err := os.ReadDir(NAMESPACE_METADATA_DIR)
 	if err != nil {
 		return err
 	}
@@ -168,7 +168,7 @@ func (ln *NamespaceManager) Delete(identifier string) error {
 }
 
 func (ln *NamespaceManager) List() ([]NamespaceMetadata, error) {
-	entries, err := os.ReadDir(METADATA_DIR)
+	entries, err := os.ReadDir(NAMESPACE_METADATA_DIR)
 	if err != nil {
 		return nil, err
 	}
