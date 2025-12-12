@@ -1,19 +1,26 @@
 package main
 
 import (
+	"log"
+
 	"gonett/internal/topology"
 )
 
 func main() {
 	topo := topology.NewTopology()
-
 	topo.AddHost("h1")
-	topo.AddSwitch("s1")
 	topo.AddHost("h2")
+	topo.AddSwitch("s1")
+	topo.AddLinkWithIPs("h1", "s1", "10.0.0.1/24", "")
+	topo.AddLinkWithIPs("h2", "s1", "10.0.0.2/24", "")
 
-	topo.AddLink("h1", "s1")
-	topo.AddLink("s1", "h2")
+	// Build it
+	builder, err := topology.NewBuilder()
+	if err != nil {
+		log.Fatalf("Failed to create builder: %v", err)
+	}
 
-	builder := topology.NewBuilder()
-	builder.Build(topo)
+	if err := builder.Build(topo); err != nil {
+		log.Fatalf("Failed to build topology: %v", err)
+	}
 }
