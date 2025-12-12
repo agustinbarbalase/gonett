@@ -65,7 +65,7 @@ func deleteVethMetadata(id string) error {
 	return os.Remove(path)
 }
 
-func (vm *VethManager) Create(nameA, nameB string) (*VethMetadata, error) {
+func (vm *VethManager) Create(nameA, nameB string) error {
 	v := &netlink.Veth{
 		LinkAttrs: netlink.LinkAttrs{
 			Name: nameA,
@@ -74,12 +74,12 @@ func (vm *VethManager) Create(nameA, nameB string) (*VethMetadata, error) {
 	}
 
 	if err := netlink.LinkAdd(v); err != nil {
-		return nil, fmt.Errorf("create veth %s<->%s: %w", nameA, nameB, err)
+		return fmt.Errorf("create veth %s<->%s: %w", nameA, nameB, err)
 	}
 
 	id, err := generateVethID()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	meta := &VethMetadata{
@@ -90,10 +90,10 @@ func (vm *VethManager) Create(nameA, nameB string) (*VethMetadata, error) {
 	}
 
 	if err := saveVethMetadata(*meta); err != nil {
-		return nil, err
+		return err
 	}
 
-	return meta, nil
+	return nil
 }
 
 func (vm *VethManager) Delete(identifier string) error {
