@@ -1,8 +1,9 @@
-package namespace
+package container
 
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -16,7 +17,40 @@ const (
 	METADATA_DIR = "/var/lib/gonett/namespaces"
 )
 
-type LinuxNamespaceManager struct{}
+type NamespaceMetadata struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	CreatedAt string `json:"created_at"`
+	Path      string `json:"path"`
+}
+
+func saveMetadata(meta NamespaceMetadata) error {
+	path := filepath.Join(METADATA_DIR, meta.ID+".json")
+	data, _ := json.MarshalIndent(meta, "", "  ")
+	return os.WriteFile(path, data, 0644)
+}
+
+func loadMetadata(id string) (*NamespaceMetadata, error) {
+	path := filepath.Join(METADATA_DIR, id+".json")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var meta NamespaceMetadata
+	if err := json.Unmarshal(data, &meta); err != nil {
+		return nil, err
+	}
+
+	return &meta, nil
+}
+
+func deleteMetadata(id string) error {
+	path := filepath.Join(METADATA_DIR, id+".json")
+	return os.Remove(path)
+}
+
+type NamespaceManager struct{}
 
 func createNamespaceDirectory() error {
 	_, err := os.Stat(NETNS_BASE)
@@ -43,13 +77,13 @@ func generateNamespaceID() (string, error) {
 	return hex.EncodeToString(bytes), nil
 }
 
-func NewLinuxNamespaceManager() NamespaceManager {
+func NewNamespaceManager() *NamespaceManager {
 	createNamespaceDirectory()
 	createMetaDataDirectory()
-	return &LinuxNamespaceManager{}
+	return &NamespaceManager{}
 }
 
-func (ln *LinuxNamespaceManager) Create(name string) error {
+func (ln *NamespaceManager) Create(name string) error {
 	if err := os.MkdirAll(NETNS_BASE, 0755); err != nil {
 		return err
 	}
@@ -89,7 +123,7 @@ func (ln *LinuxNamespaceManager) Create(name string) error {
 	return nil
 }
 
-func (ln *LinuxNamespaceManager) Delete(identifier string) error {
+func (ln *NamespaceManager) Delete(identifier string) error {
 	entries, err := os.ReadDir(METADATA_DIR)
 	if err != nil {
 		return err
@@ -133,7 +167,7 @@ func (ln *LinuxNamespaceManager) Delete(identifier string) error {
 	return nil
 }
 
-func (ln *LinuxNamespaceManager) List() ([]NamespaceMetadata, error) {
+func (ln *NamespaceManager) List() ([]NamespaceMetadata, error) {
 	entries, err := os.ReadDir(METADATA_DIR)
 	if err != nil {
 		return nil, err
