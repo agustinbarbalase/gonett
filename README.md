@@ -1,29 +1,60 @@
 # gonett
 
-Gonett is a Go version for library [Mininet](https://github.com/mininet/mininet/tree/master)
+gonett is a Go version for library [mininet](https://github.com/mininet/mininet/tree/master)
 
-## How use it
-
-For create a container run
+## Build
 
 ```bash
-sudo go run cmd/main.go create <name>
+make build
 ```
 
-For list containers run
+This produces `bin/gonett`.
+
+## Commands
+
+All commands must run as root (or via sudo).
+
+### Build sample topology
+
+Creates h1, h2 hosts and s1 switch, wires them, assigns IPs, and brings links up.
 
 ```bash
-sudo go run cmd/main.go list
+sudo ./bin/gonett build
 ```
 
-For open a terminal in container run
+### List containers
 
 ```bash
-sudo go run cmd/main.go exec <name>
+sudo ./bin/gonett ls
 ```
 
-For delete a container run
+### Exec in a container namespace
 
 ```bash
-sudo go run cmd/main.go delete <name>
+sudo ./bin/gonett exec h1 ping -c 3 10.0.0.2
 ```
+
+### Attach interactive shell
+
+```bash
+sudo ./bin/gonett attach h1
+```
+
+### Remove a container by name
+
+```bash
+sudo ./bin/gonett rm h1
+```
+
+### Cleanup everything
+
+Deletes all managed namespaces, bridges, veths.
+
+```bash
+sudo ./bin/gonett cleanup
+```
+
+## Notes
+
+- Requires Linux with network namespace support.
+- Uses `vishvananda/netlink` and `netns`; namespace operations are thread-bound, so internal code pins goroutines to OS threads where necessary.
